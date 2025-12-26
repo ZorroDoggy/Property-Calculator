@@ -1,0 +1,3667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BC Property Purchase Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e6ed;
+            padding: 20px;
+        }
+
+        /* Calculator Styles */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #1e1e2e;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 1px solid #2d2d3d;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid #4a5568;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            height: 75px;
+            width: auto;
+            vertical-align: middle;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .calculator-section {
+            padding: 30px;
+            border-bottom: 1px solid #2d2d3d;
+            background: #1e1e2e;
+        }
+
+        .calculator-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header h2 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .section-header p {
+            color: #a0aec0;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #cbd5e0;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #4a5568;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background: #2d3748;
+            color: #e0e6ed;
+        }
+
+        /* Hide number input spinner arrows */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        input[type="number"]::placeholder {
+            color: #718096;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Results and Calculator Styles */
+        .results-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #2d3748;
+            border-radius: 10px;
+            border: 1px solid #4a5568;
+        }
+
+        .results-section h3 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .cost-breakdown, .mortgage-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cost-item, .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .cost-item:last-child, .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .cost-item.total {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #48bb78;
+            border-top: 2px solid #48bb78;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        .term-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .term-analysis {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #4a5568;
+        }
+
+        .term-analysis h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .term-details, .period-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item, .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2d2d3d;
+        }
+
+        .detail-item:last-child, .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ROI Analysis Styles */
+        .input-with-reset {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-with-reset input {
+            flex: 1;
+        }
+
+        .reset-btn {
+            background: #4a5568;
+            color: #e0e6ed;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+
+        .reset-btn:hover {
+            background: #667eea;
+        }
+
+        .investment-option {
+            margin-top: 30px;
+        }
+
+        .investment-option h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .portfolio-allocation {
+            background: #2d3748;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #4a5568;
+        }
+
+        .allocation-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .allocation-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .allocation-summary {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #667eea;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #cbd5e0;
+        }
+
+        .allocation-note {
+            margin-top: 15px;
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        .roi-summary {
+            margin-bottom: 30px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-card {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #4a5568;
+        }
+
+        .scenario-card h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .period-comparison {
+            margin-bottom: 25px;
+        }
+
+        .period-comparison:last-child {
+            margin-bottom: 0;
+        }
+
+        .period-comparison h5 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        .roi-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .roi-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .roi-item:last-child {
+            border-bottom: none;
+        }
+
+        .roi-item.total {
+            font-weight: 600;
+            color: #48bb78;
+            border-top: 2px solid #48bb78;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        .roi-conclusion {
+            background: #1e1e2e;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #4a5568;
+        }
+
+        .roi-conclusion h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 25px;
+        }
+
+        .conclusion-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .conclusion-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #2d3748;
+            border-radius: 6px;
+            border: 1px solid #4a5568;
+        }
+
+        .difference-amount.positive {
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        .difference-amount.negative {
+            color: #f56565;
+            font-weight: 600;
+        }
+
+        .better-option.property {
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        .better-option.investment {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Optimization Styles */
+        .term-optimization {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .optimization-term {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #4a5568;
+        }
+
+        .optimization-term h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .optimal-recommendation {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #48bb78;
+        }
+
+        .recommendation-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .rec-item:last-child {
+            border-bottom: none;
+        }
+
+        .optimization-chart-container {
+            height: 400px;
+            margin-bottom: 30px;
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #4a5568;
+        }
+
+        .scenario-analysis {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #4a5568;
+        }
+
+        .scenario-analysis h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .term-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .term-tab {
+            background: #4a5568;
+            color: #e0e6ed;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .term-tab.active, .term-tab:hover {
+            background: #667eea;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .scenario-card-small {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #4a5568;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .scenario-card-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .scenario-card-small.optimal {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+        }
+
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .scenario-amount {
+            font-weight: 600;
+            color: #e0e6ed;
+            font-size: 1.1em;
+        }
+
+        .scenario-roi {
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        .scenario-roi.positive {
+            color: #48bb78;
+        }
+
+        .scenario-roi.negative {
+            color: #f56565;
+        }
+
+        .scenario-roi.neutral {
+            color: #a0aec0;
+        }
+
+        .scenario-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .scenario-detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #cbd5e0;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+            }
+            
+            header p {
+                font-size: 1em;
+                margin-bottom: 15px;
+            }
+
+            .term-comparison, .comparison-grid, .term-optimization {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .conclusion-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Calculator Section -->
+    <div class="container">
+            <header>
+                <h1><img src="ZorrodogBlack.jpg" alt="Zorro Logo" class="header-logo"> BC Property Purchase Calculator</h1>
+                <p>Calculate your total purchase costs, mortgage payments, and investment returns in British Columbia</p>
+            </header>
+
+            <!-- Include all calculator sections here -->
+            <div class="calculator-section">
+                <div class="section-header">
+                    <h2>Property Purchase Details</h2>
+                </div>
+                
+                <div class="input-group">
+                    <label for="propertyCity">Property Location</label>
+                    <select id="propertyCity">
+                        <option value="">Select a city...</option>
+                        <option value="vancouver">Vancouver</option>
+                        <option value="north-vancouver">North Vancouver</option>
+                        <option value="west-vancouver">West Vancouver</option>
+                        <option value="burnaby">Burnaby</option>
+                        <option value="richmond">Richmond</option>
+                        <option value="surrey">Surrey</option>
+                        <option value="squamish">Squamish</option>
+                        <option value="victoria">Victoria</option>
+                        <option value="kelowna">Kelowna</option>
+                        <option value="kamloops">Kamloops</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="acceptedPrice">Accepted Purchase Price ($)</label>
+                    <input type="number" id="acceptedPrice" placeholder="e.g., 750000" min="0" step="1000">
+                </div>
+
+                <div class="input-group">
+                    <label for="isFirstTime">
+                        <input type="checkbox" id="isFirstTime"> First-time home buyer
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label for="includeGST">
+                        <input type="checkbox" id="includeGST"> New construction (include 5% GST)
+                    </label>
+                </div>
+
+                <button id="calculatePurchase" class="btn-primary">Calculate Purchase Costs</button>
+
+                <div id="purchaseResults" class="results-section" style="display: none;">
+                    <h3>Purchase Cost Breakdown</h3>
+                    <div class="cost-breakdown">
+                        <div class="cost-item">
+                            <span>Accepted Price:</span>
+                            <span id="displayAcceptedPrice">$0</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Property Transfer Tax:</span>
+                            <span id="displayPTT">$0</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>GST (if applicable):</span>
+                            <span id="displayGST">$0</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Estimated Legal Costs:</span>
+                            <span id="displayLegal">$0</span>
+                        </div>
+                        <div class="cost-item total">
+                            <span>Total Purchase Cost:</span>
+                            <span id="displayTotal">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calculator-section" id="mortgageSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Mortgage Information</h2>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="downPayment">Down Payment ($)</label>
+                        <input type="number" id="downPayment" placeholder="e.g., 150000" min="0" step="1000">
+                    </div>
+                    <div class="input-group">
+                        <label for="amortization">Amortization (years)</label>
+                        <select id="amortization">
+                            <option value="25">25 years</option>
+                            <option value="30">30 years</option>
+                            <option value="35">35 years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="interestRate3yr">3-Year Term Interest Rate (%)</label>
+                        <input type="number" id="interestRate3yr" placeholder="e.g., 5.25" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="interestRate5yr">5-Year Term Interest Rate (%)</label>
+                        <input type="number" id="interestRate5yr" placeholder="e.g., 5.45" min="0" max="20" step="0.01">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="paymentFreq">Payment Frequency</label>
+                        <select id="paymentFreq">
+                            <option value="monthly">Monthly</option>
+                            <option value="biweekly">Bi-weekly</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <!-- Empty space for layout balance -->
+                    </div>
+                </div>
+
+                <button id="calculateMortgage" class="btn-primary">Calculate Mortgage</button>
+
+                <div id="mortgageResults" class="results-section" style="display: none;">
+                    <h3>Mortgage Summary</h3>
+                    <div class="mortgage-summary">
+                        <div class="summary-item">
+                            <span>Mortgage Amount:</span>
+                            <span id="displayMortgageAmount">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="term-comparison">
+                        <div class="term-analysis">
+                            <h4>3-Year Term Analysis</h4>
+                            <div class="term-details">
+                                <div class="detail-item">
+                                    <span>Interest Rate:</span>
+                                    <span id="displayRate3yr">0%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Payment Amount:</span>
+                                    <span id="displayPayment3yr">$0</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Interest per Month:</span>
+                                    <span id="displayMonthlyInterest3yr">$0</span>
+                                </div>
+                            </div>
+                            <div class="period-stats">
+                                <div class="stat-item">
+                                    <span>Principal Paid:</span>
+                                    <span id="principal3yr">$0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span>Interest Paid:</span>
+                                    <span id="interest3yr">$0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span>Remaining Balance:</span>
+                                    <span id="balance3yr">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="term-analysis">
+                            <h4>5-Year Term Analysis</h4>
+                            <div class="term-details">
+                                <div class="detail-item">
+                                    <span>Interest Rate:</span>
+                                    <span id="displayRate5yr">0%</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Payment Amount:</span>
+                                    <span id="displayPayment5yr">$0</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Interest per Month:</span>
+                                    <span id="displayMonthlyInterest5yr">$0</span>
+                                </div>
+                            </div>
+                            <div class="period-stats">
+                                <div class="stat-item">
+                                    <span>Principal Paid:</span>
+                                    <span id="principal5yr">$0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span>Interest Paid:</span>
+                                    <span id="interest5yr">$0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span>Remaining Balance:</span>
+                                    <span id="balance5yr">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calculator-section" id="roiSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Return on Investment Analysis</h2>
+                    <p>Compare buying property vs investing your money elsewhere</p>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="propertyAppreciation">Annual Property Appreciation (%)</label>
+                        <div class="input-with-reset">
+                            <input type="number" id="propertyAppreciation" placeholder="e.g., 3.5" step="0.1" value="0">
+                            <button type="button" class="reset-btn" onclick="document.getElementById('propertyAppreciation').value = '0'">Reset</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <!-- Empty space for layout balance -->
+                    </div>
+                </div>
+
+                <div class="investment-option">
+                    <h4>Portfolio Allocation</h4>
+                    <div class="portfolio-allocation">
+                        <div class="allocation-item">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="amount1">Investment 1 Amount ($)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="amount1" placeholder="0" min="0" step="1000">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('amount1').value = ''; calculator.updateAllocationSummary()">Reset</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="rate1">Return Rate 1 (%)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="rate1" placeholder="e.g., 3.0" step="0.1" value="0">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('rate1').value = '0'">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="allocation-item">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="amount2">Investment 2 Amount ($)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="amount2" placeholder="0" min="0" step="1000">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('amount2').value = ''; calculator.updateAllocationSummary()">Reset</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="rate2">Return Rate 2 (%)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="rate2" placeholder="e.g., 5.0" step="0.1" value="0">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('rate2').value = '0'">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="allocation-item">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="amount3">Investment 3 Amount ($)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="amount3" placeholder="0" min="0" step="1000">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('amount3').value = ''; calculator.updateAllocationSummary()">Reset</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="rate3">Return Rate 3 (%)</label>
+                                    <div class="input-with-reset">
+                                        <input type="number" id="rate3" placeholder="e.g., 7.0" step="0.1" value="0">
+                                        <button type="button" class="reset-btn" onclick="document.getElementById('rate3').value = '0'">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="allocation-summary">
+                            <div class="summary-row">
+                                <span>Total Investment Amount:</span>
+                                <span id="totalAllocated">$0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Down Payment (Reference):</span>
+                                <span id="downPaymentAmount">$0</span>
+                            </div>
+                            <div class="summary-row" id="allocationDifference">
+                                <span>Difference:</span>
+                                <span id="differenceAmount">$0</span>
+                            </div>
+                            <div class="allocation-note">
+                                <small>💡 Investment amount can be different from down payment</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateROI" class="btn-primary">Calculate ROI Comparison</button>
+
+                <div id="roiResults" class="results-section" style="display: none;">
+                    <h3>Investment Comparison</h3>
+                    
+                    <div class="roi-summary">
+                        <div class="summary-item">
+                            <span>Cash Investment (Down Payment):</span>
+                            <span id="displayTotalCash">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="comparison-grid">
+                        <div class="scenario-card property-scenario">
+                            <h4>🏠 Property Investment</h4>
+                            <div class="scenario-content">
+                                <div class="period-comparison">
+                                    <h5>3-Year Analysis</h5>
+                                    <div class="roi-stats">
+                                        <div class="roi-item">
+                                            <span>Property Value:</span>
+                                            <span id="propertyValue3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Mortgage Balance:</span>
+                                            <span id="mortgageBalance3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Net Equity:</span>
+                                            <span id="netEquity3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Interest Paid:</span>
+                                            <span id="interestPaid3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item total">
+                                            <span>Net Position:</span>
+                                            <span id="propertyNet3yr">$0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="period-comparison">
+                                    <h5>5-Year Analysis</h5>
+                                    <div class="roi-stats">
+                                        <div class="roi-item">
+                                            <span>Property Value:</span>
+                                            <span id="propertyValue5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Mortgage Balance:</span>
+                                            <span id="mortgageBalance5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Net Equity:</span>
+                                            <span id="netEquity5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Interest Paid:</span>
+                                            <span id="interestPaid5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item total">
+                                            <span>Net Position:</span>
+                                            <span id="propertyNet5yr">$0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="scenario-card investment-scenario">
+                            <h4>📈 Alternative Investment</h4>
+                            <div class="scenario-content">
+                                <div class="period-comparison">
+                                    <h5>3-Year Analysis</h5>
+                                    <div class="roi-stats">
+                                        <div class="roi-item">
+                                            <span>Initial Investment:</span>
+                                            <span id="initialInvestment3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Investment Growth:</span>
+                                            <span id="investmentGrowth3yr">$0</span>
+                                        </div>
+                                        <div class="roi-item total">
+                                            <span>Total Value:</span>
+                                            <span id="investmentTotal3yr">$0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="period-comparison">
+                                    <h5>5-Year Analysis</h5>
+                                    <div class="roi-stats">
+                                        <div class="roi-item">
+                                            <span>Initial Investment:</span>
+                                            <span id="initialInvestment5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item">
+                                            <span>Investment Growth:</span>
+                                            <span id="investmentGrowth5yr">$0</span>
+                                        </div>
+                                        <div class="roi-item total">
+                                            <span>Total Value:</span>
+                                            <span id="investmentTotal5yr">$0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="roi-conclusion">
+                        <h4>Investment Comparison Summary</h4>
+                        
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                        
+                        <div class="conclusion-stats">
+                            <div class="conclusion-item">
+                                <span>3-Year Difference:</span>
+                                <span id="difference3yr" class="difference-amount">$0</span>
+                            </div>
+                            <div class="conclusion-item">
+                                <span>5-Year Difference:</span>
+                                <span id="difference5yr" class="difference-amount">$0</span>
+                            </div>
+                            <div class="conclusion-item">
+                                <span>Better Option (3yr):</span>
+                                <span id="better3yr" class="better-option">-</span>
+                            </div>
+                            <div class="conclusion-item">
+                                <span>Better Option (5yr):</span>
+                                <span id="better5yr" class="better-option">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calculator-section" id="optimizationSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Down Payment Optimization</h2>
+                    <p>Find the optimal down payment amount to maximize your return on investment</p>
+                </div>
+
+                <button id="optimizeDownPayment" class="btn-primary">Optimize Down Payment</button>
+
+                <div id="optimizationResults" class="results-section" style="display: none;">
+                    <h3>Down Payment Analysis</h3>
+                    
+                    <div class="term-optimization">
+                        <div class="optimization-term">
+                            <h4>🎯 3-Year Term Recommendation</h4>
+                            <div class="optimal-recommendation">
+                                <div class="recommendation-details">
+                                    <div class="rec-item">
+                                        <span>Optimal Amount:</span>
+                                        <span id="optimalAmount3yr">$0</span>
+                                    </div>
+                                    <div class="rec-item">
+                                        <span>Expected 3-Year ROI:</span>
+                                        <span id="optimalROI3yr">0%</span>
+                                    </div>
+                                    <div class="rec-item">
+                                        <span>Reason:</span>
+                                        <span id="optimalReason3yr">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="optimization-term">
+                            <h4>🎯 5-Year Term Recommendation</h4>
+                            <div class="optimal-recommendation">
+                                <div class="recommendation-details">
+                                    <div class="rec-item">
+                                        <span>Optimal Amount:</span>
+                                        <span id="optimalAmount5yr">$0</span>
+                                    </div>
+                                    <div class="rec-item">
+                                        <span>Expected 5-Year ROI:</span>
+                                        <span id="optimalROI5yr">0%</span>
+                                    </div>
+                                    <div class="rec-item">
+                                        <span>Reason:</span>
+                                        <span id="optimalReason5yr">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="optimization-chart-container">
+                        <canvas id="optimizationChart"></canvas>
+                    </div>
+
+                    <div class="scenario-analysis">
+                        <h4>Down Payment Scenarios Analyzed</h4>
+                        <div class="term-tabs">
+                            <button class="term-tab active" onclick="calculator.showScenarios('3yr')">3-Year Term</button>
+                            <button class="term-tab" onclick="calculator.showScenarios('5yr')">5-Year Term</button>
+                        </div>
+                        <div class="scenarios-grid" id="scenariosGrid3yr">
+                            <!-- 3-year scenarios will be populated by JavaScript -->
+                        </div>
+                        <div class="scenarios-grid" id="scenariosGrid5yr" style="display: none;">
+                            <!-- 5-year scenarios will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opportunity Cost Visualization Section -->
+            <div class="calculator-section" id="opportunityCostSection" style="display: none;">
+                <div class="section-header">
+                    <h2>💰 Opportunity Cost Analysis</h2>
+                    <p>Compare total wealth accumulation across different time periods and investment strategies</p>
+                </div>
+
+                <button id="calculateOpportunityCost" class="btn-primary">Analyze Opportunity Cost</button>
+
+                <!-- PDF Generation Button -->
+                <div id="pdfGenerationSection" style="display: none; text-align: center; margin-top: 30px; padding: 25px; background: #2d3748; border-radius: 10px; border: 1px solid #4a5568;">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">📄 Generate Professional Report</h4>
+                    <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.95em;">Create a comprehensive PDF report with all your calculations, charts, and analysis</p>
+                    <button id="generatePDF" class="btn-primary" style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 16px 32px; font-size: 16px; font-weight: 600;">
+                        📊 Generate PDF Report
+                    </button>
+                    <div id="pdfLoadingIndicator" style="display: none; margin-top: 15px; color: #a0aec0;">
+                        <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #4a5568; border-radius: 50%; border-top-color: #667eea; animation: spin 1s linear infinite; margin-right: 10px;"></div>
+                        Generating your PDF report...
+                    </div>
+                </div>
+
+                <div id="opportunityCostResults" class="results-section" style="display: none;">
+                    <h3>Wealth Accumulation Comparison</h3>
+                    
+                    <!-- Time Period Selector -->
+                    <div class="time-period-selector" style="margin-bottom: 30px; text-align: center;">
+                        <div class="period-tabs">
+                            <button class="period-tab active" onclick="calculator.showOpportunityCostPeriod('3yr')">3 Years</button>
+                            <button class="period-tab" onclick="calculator.showOpportunityCostPeriod('5yr')">5 Years</button>
+                            <button class="period-tab" onclick="calculator.showOpportunityCostPeriod('10yr')">10 Years</button>
+                        </div>
+                    </div>
+
+                    <!-- Wealth Comparison Chart -->
+                    <div class="opportunity-chart-container">
+                        <canvas id="opportunityCostChart"></canvas>
+                    </div>
+
+                    <!-- Detailed Breakdown -->
+                    <div class="wealth-breakdown-grid">
+                        <div class="wealth-scenario-card property-wealth">
+                            <h4>🏠 Property Investment Strategy</h4>
+                            <div id="propertyWealthBreakdown" class="wealth-details">
+                                <!-- Property wealth details will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="wealth-scenario-card alternative-wealth">
+                            <h4>📈 Alternative Investment Strategy</h4>
+                            <div id="alternativeWealthBreakdown" class="wealth-details">
+                                <!-- Alternative wealth details will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Analysis -->
+                    <div class="risk-analysis-section">
+                        <h4>⚖️ Risk-Adjusted Analysis</h4>
+                        <div class="risk-metrics-grid">
+                            <div class="risk-metric-card">
+                                <div class="risk-metric-header">
+                                    <span class="risk-icon">🏠</span>
+                                    <span class="risk-title">Property Investment Risk</span>
+                                </div>
+                                <div id="propertyRiskMetrics" class="risk-details">
+                                    <!-- Property risk metrics will be populated -->
+                                </div>
+                            </div>
+                            
+                            <div class="risk-metric-card">
+                                <div class="risk-metric-header">
+                                    <span class="risk-icon">📊</span>
+                                    <span class="risk-title">Portfolio Investment Risk</span>
+                                </div>
+                                <div id="portfolioRiskMetrics" class="risk-details">
+                                    <!-- Portfolio risk metrics will be populated -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="risk-conclusion">
+                            <h5>Risk-Adjusted Recommendation</h5>
+                            <div id="riskAdjustedRecommendation" class="recommendation-text">
+                                <!-- Risk-adjusted recommendation will be populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Summary Section -->
+            <div id="marketSummarySection" class="calculator-section" style="display: none;">
+                <div class="section-header">
+                    <h2>📊 Market Summary</h2>
+                    <p id="selectedCityName">Select a city to view market conditions</p>
+                </div>
+                
+                <div id="marketSummaryContent" class="market-summary-content">
+                    <!-- Market data will be populated here -->
+                </div>
+            </div>
+
+            <!-- Calculator sections will be added here as needed -->
+        </div>
+    </div>
+
+    <script>
+        class PropertyCalculator {
+            constructor() {
+                this.purchaseData = {};
+                this.mortgageData = {};
+                this.comparisonChart = null;
+                this.optimizationChart = null;
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                // Calculator functionality
+                document.getElementById('calculatePurchase').addEventListener('click', () => {
+                    this.calculatePurchaseCosts();
+                });
+
+                document.getElementById('calculateMortgage').addEventListener('click', () => {
+                    this.calculateMortgage();
+                });
+
+                document.getElementById('calculateROI').addEventListener('click', () => {
+                    this.calculateROI();
+                });
+
+                document.getElementById('optimizeDownPayment').addEventListener('click', () => {
+                    this.optimizeDownPayment();
+                });
+
+                document.getElementById('calculateOpportunityCost').addEventListener('click', () => {
+                    this.calculateOpportunityCost();
+                });
+
+                document.getElementById('generatePDF').addEventListener('click', () => {
+                    this.generatePDFReport();
+                });
+
+                // Auto-calculate down payment when purchase cost changes
+                document.getElementById('acceptedPrice').addEventListener('input', () => {
+                    this.updateDownPaymentSuggestion();
+                });
+
+                // Portfolio allocation listeners
+                ['amount1', 'amount2', 'amount3'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => {
+                        this.updateAllocationSummary();
+                    });
+                });
+            }
+
+            // Calculator methods
+            calculatePurchaseCosts() {
+                const acceptedPrice = parseFloat(document.getElementById('acceptedPrice').value);
+                const isFirstTime = document.getElementById('isFirstTime').checked;
+                const includeGST = document.getElementById('includeGST').checked;
+
+                if (!acceptedPrice || acceptedPrice <= 0) {
+                    alert('Please enter a valid accepted price');
+                    return;
+                }
+
+                // Calculate Property Transfer Tax (PTT)
+                let ptt = this.calculatePTT(acceptedPrice, isFirstTime);
+                
+                // GST (5% on new construction homes)
+                let gst = 0;
+                if (includeGST) {
+                    gst = acceptedPrice * 0.05;
+                }
+                
+                // Estimated legal costs
+                let legalCosts = 1500;
+
+                let totalCost = acceptedPrice + ptt + gst + legalCosts;
+
+                // Store purchase data
+                this.purchaseData = {
+                    acceptedPrice,
+                    ptt,
+                    gst,
+                    legalCosts,
+                    totalCost
+                };
+
+                // Display results
+                document.getElementById('displayAcceptedPrice').textContent = this.formatCurrency(acceptedPrice);
+                document.getElementById('displayPTT').textContent = this.formatCurrency(ptt);
+                document.getElementById('displayGST').textContent = this.formatCurrency(gst);
+                document.getElementById('displayLegal').textContent = this.formatCurrency(legalCosts);
+                document.getElementById('displayTotal').textContent = this.formatCurrency(totalCost);
+
+                document.getElementById('purchaseResults').style.display = 'block';
+                document.getElementById('mortgageSection').style.display = 'block';
+
+                this.updateDownPaymentSuggestion();
+            }
+
+            calculatePTT(price, isFirstTime) {
+                let ptt = 0;
+
+                if (price <= 200000) {
+                    ptt = price * 0.01;
+                } else if (price <= 2000000) {
+                    ptt = 2000 + (price - 200000) * 0.02;
+                } else if (price <= 3000000) {
+                    ptt = 38000 + (price - 2000000) * 0.03;
+                } else {
+                    ptt = 68000 + (price - 3000000) * 0.05;
+                }
+
+                if (isFirstTime && price <= 500000) {
+                    ptt = 0;
+                } else if (isFirstTime && price <= 525000) {
+                    let exemptionReduction = (525000 - price) / 25000;
+                    ptt = ptt * (1 - exemptionReduction);
+                }
+
+                return Math.max(0, ptt);
+            }
+
+            updateDownPaymentSuggestion() {
+                const acceptedPrice = parseFloat(document.getElementById('acceptedPrice').value);
+                if (acceptedPrice) {
+                    let minDownPayment;
+                    if (acceptedPrice <= 500000) {
+                        minDownPayment = acceptedPrice * 0.05;
+                    } else if (acceptedPrice <= 1000000) {
+                        minDownPayment = 25000 + (acceptedPrice - 500000) * 0.10;
+                    } else {
+                        minDownPayment = acceptedPrice * 0.20;
+                    }
+                    
+                    document.getElementById('downPayment').placeholder = `Min: ${this.formatCurrency(minDownPayment)}`;
+                }
+            }
+
+            calculateMortgage() {
+                const acceptedPrice = parseFloat(document.getElementById('acceptedPrice').value);
+                const downPayment = parseFloat(document.getElementById('downPayment').value);
+                const interestRate3yr = parseFloat(document.getElementById('interestRate3yr').value);
+                const interestRate5yr = parseFloat(document.getElementById('interestRate5yr').value);
+                const amortization = parseInt(document.getElementById('amortization').value);
+                const paymentFreq = document.getElementById('paymentFreq').value;
+
+                if (!acceptedPrice || !downPayment || !interestRate3yr || !interestRate5yr) {
+                    alert('Please fill in all mortgage fields');
+                    return;
+                }
+
+                const mortgageAmount = acceptedPrice - downPayment;
+                
+                if (mortgageAmount <= 0) {
+                    alert('Down payment cannot be greater than or equal to the purchase price');
+                    return;
+                }
+
+                let paymentsPerYear;
+                switch (paymentFreq) {
+                    case 'weekly': paymentsPerYear = 52; break;
+                    case 'biweekly': paymentsPerYear = 26; break;
+                    case 'monthly': paymentsPerYear = 12; break;
+                }
+
+                // Calculate for 3-year term
+                const monthlyRate3yr = interestRate3yr / 100 / 12;
+                const paymentRate3yr = monthlyRate3yr / (paymentsPerYear / 12);
+                const totalPaymentsFreq = amortization * 12 * (paymentsPerYear / 12);
+
+                const paymentAmount3yr = mortgageAmount * 
+                    (paymentRate3yr * Math.pow(1 + paymentRate3yr, totalPaymentsFreq)) / 
+                    (Math.pow(1 + paymentRate3yr, totalPaymentsFreq) - 1);
+
+                // Calculate monthly interest for 3-year term
+                const monthlyInterest3yr = mortgageAmount * monthlyRate3yr;
+
+                const analysis3yr = this.calculatePeriodAnalysis(mortgageAmount, paymentAmount3yr, paymentRate3yr, 3 * paymentsPerYear);
+
+                // Calculate for 5-year term
+                const monthlyRate5yr = interestRate5yr / 100 / 12;
+                const paymentRate5yr = monthlyRate5yr / (paymentsPerYear / 12);
+
+                const paymentAmount5yr = mortgageAmount * 
+                    (paymentRate5yr * Math.pow(1 + paymentRate5yr, totalPaymentsFreq)) / 
+                    (Math.pow(1 + paymentRate5yr, totalPaymentsFreq) - 1);
+
+                // Calculate monthly interest for 5-year term
+                const monthlyInterest5yr = mortgageAmount * monthlyRate5yr;
+
+                const analysis5yr = this.calculatePeriodAnalysis(mortgageAmount, paymentAmount5yr, paymentRate5yr, 5 * paymentsPerYear);
+
+                // Store mortgage data
+                this.mortgageData = {
+                    mortgageAmount,
+                    downPayment,
+                    interestRate3yr,
+                    interestRate5yr,
+                    paymentAmount3yr,
+                    paymentAmount5yr,
+                    monthlyInterest3yr,
+                    monthlyInterest5yr,
+                    analysis3yr,
+                    analysis5yr
+                };
+
+                // Display results
+                document.getElementById('displayMortgageAmount').textContent = this.formatCurrency(mortgageAmount);
+                
+                // 3-year term results
+                document.getElementById('displayRate3yr').textContent = interestRate3yr.toFixed(2) + '%';
+                document.getElementById('displayPayment3yr').textContent = this.formatCurrency(paymentAmount3yr);
+                document.getElementById('displayMonthlyInterest3yr').textContent = this.formatCurrency(monthlyInterest3yr);
+                document.getElementById('principal3yr').textContent = this.formatCurrency(analysis3yr.principalPaid);
+                document.getElementById('interest3yr').textContent = this.formatCurrency(analysis3yr.interestPaid);
+                document.getElementById('balance3yr').textContent = this.formatCurrency(analysis3yr.remainingBalance);
+
+                // 5-year term results
+                document.getElementById('displayRate5yr').textContent = interestRate5yr.toFixed(2) + '%';
+                document.getElementById('displayPayment5yr').textContent = this.formatCurrency(paymentAmount5yr);
+                document.getElementById('displayMonthlyInterest5yr').textContent = this.formatCurrency(monthlyInterest5yr);
+                document.getElementById('principal5yr').textContent = this.formatCurrency(analysis5yr.principalPaid);
+                document.getElementById('interest5yr').textContent = this.formatCurrency(analysis5yr.interestPaid);
+                document.getElementById('balance5yr').textContent = this.formatCurrency(analysis5yr.remainingBalance);
+
+                document.getElementById('mortgageResults').style.display = 'block';
+                document.getElementById('roiSection').style.display = 'block';
+            }
+
+            updateAllocationSummary() {
+                if (!this.mortgageData.downPayment) return;
+
+                const amount1 = parseFloat(document.getElementById('amount1').value) || 0;
+                const amount2 = parseFloat(document.getElementById('amount2').value) || 0;
+                const amount3 = parseFloat(document.getElementById('amount3').value) || 0;
+                
+                const totalAllocated = amount1 + amount2 + amount3;
+                const downPayment = this.mortgageData.downPayment;
+                const difference = totalAllocated - downPayment;
+
+                document.getElementById('totalAllocated').textContent = this.formatCurrency(totalAllocated);
+                document.getElementById('downPaymentAmount').textContent = this.formatCurrency(downPayment);
+                document.getElementById('differenceAmount').textContent = this.formatCurrency(Math.abs(difference));
+
+                const diffRow = document.getElementById('allocationDifference');
+                if (Math.abs(difference) < 0.01) {
+                    diffRow.className = 'summary-row allocation-valid';
+                    diffRow.querySelector('span:first-child').textContent = 'Difference: ✓ Equal';
+                } else {
+                    diffRow.className = 'summary-row allocation-info';
+                    diffRow.querySelector('span:first-child').textContent = difference > 0 ? 'Over by:' : 'Under by:';
+                }
+            }
+
+            calculatePeriodAnalysis(principal, payment, rate, periods) {
+                let balance = principal;
+                let totalPrincipalPaid = 0;
+                let totalInterestPaid = 0;
+
+                for (let i = 0; i < periods; i++) {
+                    const interestPayment = balance * rate;
+                    const principalPayment = payment - interestPayment;
+                    
+                    balance -= principalPayment;
+                    totalPrincipalPaid += principalPayment;
+                    totalInterestPaid += interestPayment;
+
+                    if (balance <= 0) {
+                        balance = 0;
+                        break;
+                    }
+                }
+
+                return {
+                    principalPaid: totalPrincipalPaid,
+                    interestPaid: totalInterestPaid,
+                    remainingBalance: Math.max(0, balance)
+                };
+            }
+
+            calculateROI() {
+                if (!this.purchaseData.acceptedPrice || !this.mortgageData.mortgageAmount) {
+                    alert('Please complete the purchase cost and mortgage calculations first');
+                    return;
+                }
+
+                const propertyAppreciation = parseFloat(document.getElementById('propertyAppreciation').value) / 100;
+
+                if (isNaN(propertyAppreciation)) {
+                    alert('Please enter a valid property appreciation rate');
+                    return;
+                }
+
+                // Get portfolio allocation data
+                const amount1 = parseFloat(document.getElementById('amount1').value) || 0;
+                const amount2 = parseFloat(document.getElementById('amount2').value) || 0;
+                const amount3 = parseFloat(document.getElementById('amount3').value) || 0;
+                const rate1 = parseFloat(document.getElementById('rate1').value) / 100;
+                const rate2 = parseFloat(document.getElementById('rate2').value) / 100;
+                const rate3 = parseFloat(document.getElementById('rate3').value) / 100;
+
+                const totalAllocated = amount1 + amount2 + amount3;
+
+                if (totalAllocated === 0) {
+                    alert('Please enter at least one investment amount');
+                    return;
+                }
+
+                if (isNaN(rate1) || isNaN(rate2) || isNaN(rate3)) {
+                    alert('Please enter valid return rates for all investments');
+                    return;
+                }
+
+                const investmentData = {
+                    allocations: [
+                        { amount: amount1, rate: rate1 },
+                        { amount: amount2, rate: rate2 },
+                        { amount: amount3, rate: rate3 }
+                    ]
+                };
+
+                // Cash investment is the down payment
+                const totalCashInvestment = this.mortgageData.downPayment;
+
+                // Property investment calculations
+                const property3yr = this.calculatePropertyROI(3, propertyAppreciation);
+                const property5yr = this.calculatePropertyROI(5, propertyAppreciation);
+
+                // Alternative investment calculations
+                const investment3yr = this.calculateAlternativeInvestment(investmentData, 3);
+                const investment5yr = this.calculateAlternativeInvestment(investmentData, 5);
+
+                // Display results
+                this.displayROIResults(totalCashInvestment, property3yr, property5yr, investment3yr, investment5yr);
+                
+                // Show optimization section
+                document.getElementById('optimizationSection').style.display = 'block';
+                
+                // Show opportunity cost section
+                document.getElementById('opportunityCostSection').style.display = 'block';
+            }
+
+            calculatePropertyROI(years, appreciationRate) {
+                const currentValue = this.purchaseData.acceptedPrice;
+                const futureValue = currentValue * Math.pow(1 + appreciationRate, years);
+                
+                // Use the appropriate term data
+                const mortgageBalance = years === 3 ? this.mortgageData.analysis3yr.remainingBalance : 
+                                                        this.mortgageData.analysis5yr.remainingBalance;
+                const interestPaid = years === 3 ? this.mortgageData.analysis3yr.interestPaid : 
+                                                      this.mortgageData.analysis5yr.interestPaid;
+                
+                const netEquity = futureValue - mortgageBalance;
+                const netPosition = netEquity - interestPaid;
+
+                return {
+                    propertyValue: futureValue,
+                    mortgageBalance: mortgageBalance,
+                    netEquity: netEquity,
+                    interestPaid: interestPaid,
+                    netPosition: netPosition
+                };
+            }
+
+            calculateAlternativeInvestment(investmentData, years) {
+                let totalFutureValue = 0;
+                let totalPrincipal = 0;
+
+                // Split portfolio calculation
+                investmentData.allocations.forEach(allocation => {
+                    if (allocation.amount > 0) {
+                        const futureValue = allocation.amount * Math.pow(1 + allocation.rate, years);
+                        totalFutureValue += futureValue;
+                        totalPrincipal += allocation.amount;
+                    }
+                });
+
+                const growth = totalFutureValue - totalPrincipal;
+
+                return {
+                    initialInvestment: totalPrincipal,
+                    growth: growth,
+                    totalValue: totalFutureValue
+                };
+            }
+
+            displayROIResults(totalCash, prop3yr, prop5yr, inv3yr, inv5yr) {
+                // Store ROI data for PDF generation
+                this.roiData = {
+                    property3yr: prop3yr,
+                    property5yr: prop5yr,
+                    investment3yr: inv3yr,
+                    investment5yr: inv5yr,
+                    difference3yr: prop3yr.netPosition - inv3yr.totalValue,
+                    difference5yr: prop5yr.netPosition - inv5yr.totalValue,
+                    better3yr: prop3yr.netPosition > inv3yr.totalValue ? 'Property' : 'Investment',
+                    better5yr: prop5yr.netPosition > inv5yr.totalValue ? 'Property' : 'Investment'
+                };
+
+                // Total cash investment
+                document.getElementById('displayTotalCash').textContent = this.formatCurrency(totalCash);
+
+                // Property 3-year
+                document.getElementById('propertyValue3yr').textContent = this.formatCurrency(prop3yr.propertyValue);
+                document.getElementById('mortgageBalance3yr').textContent = this.formatCurrency(prop3yr.mortgageBalance);
+                document.getElementById('netEquity3yr').textContent = this.formatCurrency(prop3yr.netEquity);
+                document.getElementById('interestPaid3yr').textContent = this.formatCurrency(prop3yr.interestPaid);
+                document.getElementById('propertyNet3yr').textContent = this.formatCurrency(prop3yr.netPosition);
+
+                // Property 5-year
+                document.getElementById('propertyValue5yr').textContent = this.formatCurrency(prop5yr.propertyValue);
+                document.getElementById('mortgageBalance5yr').textContent = this.formatCurrency(prop5yr.mortgageBalance);
+                document.getElementById('netEquity5yr').textContent = this.formatCurrency(prop5yr.netEquity);
+                document.getElementById('interestPaid5yr').textContent = this.formatCurrency(prop5yr.interestPaid);
+                document.getElementById('propertyNet5yr').textContent = this.formatCurrency(prop5yr.netPosition);
+
+                // Investment 3-year
+                document.getElementById('initialInvestment3yr').textContent = this.formatCurrency(inv3yr.initialInvestment);
+                document.getElementById('investmentGrowth3yr').textContent = this.formatCurrency(inv3yr.growth);
+                document.getElementById('investmentTotal3yr').textContent = this.formatCurrency(inv3yr.totalValue);
+
+                // Investment 5-year
+                document.getElementById('initialInvestment5yr').textContent = this.formatCurrency(inv5yr.initialInvestment);
+                document.getElementById('investmentGrowth5yr').textContent = this.formatCurrency(inv5yr.growth);
+                document.getElementById('investmentTotal5yr').textContent = this.formatCurrency(inv5yr.totalValue);
+
+                // Comparison
+                const diff3yr = prop3yr.netPosition - inv3yr.totalValue;
+                const diff5yr = prop5yr.netPosition - inv5yr.totalValue;
+
+                document.getElementById('difference3yr').textContent = this.formatCurrency(Math.abs(diff3yr));
+                document.getElementById('difference3yr').className = `difference-amount ${diff3yr >= 0 ? 'positive' : 'negative'}`;
+
+                document.getElementById('difference5yr').textContent = this.formatCurrency(Math.abs(diff5yr));
+                document.getElementById('difference5yr').className = `difference-amount ${diff5yr >= 0 ? 'positive' : 'negative'}`;
+
+                const better3yr = diff3yr >= 0 ? 'Property' : 'Investment';
+                const better5yr = diff5yr >= 0 ? 'Property' : 'Investment';
+
+                document.getElementById('better3yr').textContent = better3yr;
+                document.getElementById('better3yr').className = `better-option ${better3yr.toLowerCase()}`;
+
+                document.getElementById('better5yr').textContent = better5yr;
+                document.getElementById('better5yr').className = `better-option ${better5yr.toLowerCase()}`;
+
+                // Create comparison chart
+                this.createComparisonChart(prop3yr, prop5yr, inv3yr, inv5yr);
+
+                document.getElementById('roiResults').style.display = 'block';
+            }
+
+            createComparisonChart(prop3yr, prop5yr, inv3yr, inv5yr) {
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (this.comparisonChart) {
+                    this.comparisonChart.destroy();
+                }
+
+                const data = {
+                    labels: ['3 Years', '5 Years'],
+                    datasets: [
+                        {
+                            label: '🏠 Property Investment',
+                            data: [prop3yr.netPosition, prop5yr.netPosition],
+                            backgroundColor: 'rgba(72, 187, 120, 0.8)',
+                            borderColor: 'rgba(72, 187, 120, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        },
+                        {
+                            label: '📈 Alternative Investment',
+                            data: [inv3yr.totalValue, inv5yr.totalValue],
+                            backgroundColor: 'rgba(66, 153, 225, 0.8)',
+                            borderColor: 'rgba(66, 153, 225, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Investment Performance Comparison',
+                                color: '#e0e6ed',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#e0e6ed',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 55, 72, 0.9)',
+                                titleColor: '#e0e6ed',
+                                bodyColor: '#e0e6ed',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed.y;
+                                        const formatted = new Intl.NumberFormat('en-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0
+                                        }).format(value);
+                                        return `${context.dataset.label}: ${formatted}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)'
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)'
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('en-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                            notation: 'compact'
+                                        }).format(value);
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                };
+
+                this.comparisonChart = new Chart(ctx, config);
+            }
+
+            optimizeDownPayment() {
+                if (!this.purchaseData.acceptedPrice || !this.mortgageData) {
+                    alert('Please complete all calculations first');
+                    return;
+                }
+
+                const propertyPrice = this.purchaseData.acceptedPrice;
+                const propertyAppreciation = parseFloat(document.getElementById('propertyAppreciation').value) / 100;
+                
+                if (isNaN(propertyAppreciation)) {
+                    alert('Please enter a valid property appreciation rate');
+                    return;
+                }
+
+                // Get current investment allocation for comparison
+                const amount1 = parseFloat(document.getElementById('amount1').value) || 0;
+                const amount2 = parseFloat(document.getElementById('amount2').value) || 0;
+                const amount3 = parseFloat(document.getElementById('amount3').value) || 0;
+                const rate1 = parseFloat(document.getElementById('rate1').value) / 100;
+                const rate2 = parseFloat(document.getElementById('rate2').value) / 100;
+                const rate3 = parseFloat(document.getElementById('rate3').value) / 100;
+
+                const investmentData = {
+                    allocations: [
+                        { amount: amount1, rate: rate1 },
+                        { amount: amount2, rate: rate2 },
+                        { amount: amount3, rate: rate3 }
+                    ]
+                };
+
+                // Calculate weighted average investment return
+                const totalInvestment = amount1 + amount2 + amount3;
+                let weightedReturn = 0;
+                if (totalInvestment > 0) {
+                    weightedReturn = (amount1 * rate1 + amount2 * rate2 + amount3 * rate3) / totalInvestment;
+                }
+
+                // Analyze different down payment scenarios for both terms
+                const scenarios3yr = this.analyzeDownPaymentScenarios(propertyPrice, propertyAppreciation, weightedReturn, 3);
+                const scenarios5yr = this.analyzeDownPaymentScenarios(propertyPrice, propertyAppreciation, weightedReturn, 5);
+                
+                // Find optimal scenarios for each term
+                const optimalScenario3yr = scenarios3yr.reduce((best, current) => 
+                    current.propertyROI > best.propertyROI ? current : best
+                );
+                const optimalScenario5yr = scenarios5yr.reduce((best, current) => 
+                    current.propertyROI > best.propertyROI ? current : best
+                );
+
+                // Display results
+                this.displayOptimizationResults(scenarios3yr, scenarios5yr, optimalScenario3yr, optimalScenario5yr, weightedReturn);
+            }
+
+            analyzeDownPaymentScenarios(propertyPrice, propertyAppreciation, investmentReturn, termYears) {
+                const scenarios = [];
+                const minDownPayment = this.calculateMinDownPayment(propertyPrice);
+                const maxDownPayment = propertyPrice * 0.8; // Max 80% down payment
+                
+                // Test different down payment percentages
+                const percentages = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.70, 0.80];
+                
+                // Get the appropriate interest rate for the term
+                const interestRate = termYears === 3 ? 
+                    this.mortgageData.interestRate3yr / 100 : 
+                    this.mortgageData.interestRate5yr / 100;
+                
+                percentages.forEach(percentage => {
+                    const downPayment = propertyPrice * percentage;
+                    
+                    // Skip if below minimum down payment
+                    if (downPayment < minDownPayment) return;
+                    
+                    const mortgageAmount = propertyPrice - downPayment;
+                    
+                    // Calculate property ROI for the specific term
+                    const futurePropertyValue = propertyPrice * Math.pow(1 + propertyAppreciation, termYears);
+                    const monthlyRate = interestRate / 12;
+                    const totalPayments = 25 * 12; // 25-year amortization
+                    const monthlyPayment = mortgageAmount * 
+                        (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / 
+                        (Math.pow(1 + monthlyRate, totalPayments) - 1);
+                    
+                    // Calculate mortgage balance and interest for the term period
+                    const termAnalysis = this.calculatePeriodAnalysis(mortgageAmount, monthlyPayment, monthlyRate, termYears * 12);
+                    
+                    // Property investment return
+                    const propertyEquity = futurePropertyValue - termAnalysis.remainingBalance;
+                    const propertyNetReturn = propertyEquity - termAnalysis.interestPaid;
+                    const propertyROI = ((propertyNetReturn - downPayment) / downPayment) * 100;
+                    
+                    // Alternative investment return for the same term period
+                    const alternativeValue = downPayment * Math.pow(1 + investmentReturn, termYears);
+                    const alternativeROI = investmentReturn === 0 ? 0 : ((alternativeValue - downPayment) / downPayment) * 100;
+                    
+                    // Net advantage of property vs alternative
+                    const netAdvantage = propertyROI - alternativeROI;
+                    
+                    scenarios.push({
+                        downPayment: downPayment,
+                        percentage: percentage * 100,
+                        mortgageAmount: mortgageAmount,
+                        monthlyPayment: monthlyPayment,
+                        propertyEquity: propertyEquity,
+                        interestPaid: termAnalysis.interestPaid,
+                        propertyROI: propertyROI,
+                        alternativeROI: alternativeROI,
+                        netAdvantage: netAdvantage,
+                        termYears: termYears,
+                        interestRate: interestRate * 100
+                    });
+                });
+                
+                return scenarios;
+            }
+
+            calculateMinDownPayment(propertyPrice) {
+                if (propertyPrice <= 500000) {
+                    return propertyPrice * 0.05; // 5% minimum
+                } else if (propertyPrice <= 1000000) {
+                    return 25000 + (propertyPrice - 500000) * 0.10; // 5% on first 500k, 10% on remainder
+                } else {
+                    return propertyPrice * 0.20; // 20% for homes over $1M
+                }
+            }
+
+            displayOptimizationResults(scenarios3yr, scenarios5yr, optimalScenario3yr, optimalScenario5yr, investmentReturn) {
+                // Display 3-year optimal recommendation
+                document.getElementById('optimalAmount3yr').textContent = this.formatCurrency(optimalScenario3yr.downPayment);
+                document.getElementById('optimalROI3yr').textContent = optimalScenario3yr.propertyROI.toFixed(1) + '%';
+                document.getElementById('optimalReason3yr').textContent = this.getOptimizationReason(optimalScenario3yr, investmentReturn);
+                
+                // Display 5-year optimal recommendation
+                document.getElementById('optimalAmount5yr').textContent = this.formatCurrency(optimalScenario5yr.downPayment);
+                document.getElementById('optimalROI5yr').textContent = optimalScenario5yr.propertyROI.toFixed(1) + '%';
+                document.getElementById('optimalReason5yr').textContent = this.getOptimizationReason(optimalScenario5yr, investmentReturn);
+                
+                // Store scenarios for chart and tab switching
+                this.scenarios3yr = scenarios3yr;
+                this.scenarios5yr = scenarios5yr;
+                
+                // Create optimization chart (default to 5-year)
+                this.createOptimizationChart(scenarios5yr);
+                
+                // Display scenario cards (default to 3-year)
+                this.displayScenarioCards(scenarios3yr, optimalScenario3yr, '3yr');
+                this.displayScenarioCards(scenarios5yr, optimalScenario5yr, '5yr');
+                
+                document.getElementById('optimizationResults').style.display = 'block';
+            }
+
+            getOptimizationReason(scenario, investmentReturn) {
+                if (scenario.netAdvantage > 5) {
+                    return 'Maximizes leverage benefits vs alternative investments';
+                } else if (scenario.netAdvantage > 0) {
+                    return 'Slight advantage over alternative investments';
+                } else if (investmentReturn === 0) {
+                    return 'Optimal leverage with no alternative investment';
+                } else {
+                    return 'Best balance of risk and return';
+                }
+            }
+
+            showScenarios(term) {
+                // Update tab appearance
+                document.querySelectorAll('.term-tab').forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // Show/hide appropriate scenario grids
+                document.getElementById('scenariosGrid3yr').style.display = term === '3yr' ? 'grid' : 'none';
+                document.getElementById('scenariosGrid5yr').style.display = term === '5yr' ? 'grid' : 'none';
+                
+                // Update chart
+                const scenarios = term === '3yr' ? this.scenarios3yr : this.scenarios5yr;
+                this.createOptimizationChart(scenarios);
+            }
+
+            createOptimizationChart(scenarios) {
+                const ctx = document.getElementById('optimizationChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (this.optimizationChart) {
+                    this.optimizationChart.destroy();
+                }
+
+                // Calculate net advantage and find breakeven points
+                const netAdvantageData = scenarios.map(s => s.propertyROI - s.alternativeROI);
+                const breakEvenPoints = [];
+                
+                // Find breakeven points where lines cross
+                for (let i = 0; i < netAdvantageData.length - 1; i++) {
+                    if ((netAdvantageData[i] >= 0 && netAdvantageData[i + 1] < 0) || 
+                        (netAdvantageData[i] < 0 && netAdvantageData[i + 1] >= 0)) {
+                        breakEvenPoints.push({
+                            x: scenarios[i].percentage,
+                            y: scenarios[i].propertyROI
+                        });
+                    }
+                }
+
+                const data = {
+                    labels: scenarios.map(s => s.percentage.toFixed(0) + '%'),
+                    datasets: [
+                        // Advantage area (green) - where property wins
+                        {
+                            label: 'Property Advantage Zone',
+                            data: scenarios.map(s => s.propertyROI >= s.alternativeROI ? s.propertyROI : s.alternativeROI),
+                            backgroundColor: 'rgba(72, 187, 120, 0.15)',
+                            borderColor: 'transparent',
+                            fill: '+1',
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            order: 3
+                        },
+                        // Alternative investment line (for fill reference)
+                        {
+                            label: '',
+                            data: scenarios.map(s => s.alternativeROI),
+                            backgroundColor: 'rgba(245, 101, 101, 0.15)',
+                            borderColor: 'transparent',
+                            fill: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            order: 4
+                        },
+                        // Property ROI line
+                        {
+                            label: '🏠 Property ROI',
+                            data: scenarios.map(s => s.propertyROI),
+                            borderColor: 'rgba(72, 187, 120, 1)',
+                            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(72, 187, 120, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            order: 1
+                        },
+                        // Alternative Investment ROI line
+                        {
+                            label: '📈 Alternative Investment ROI',
+                            data: scenarios.map(s => s.alternativeROI),
+                            borderColor: 'rgba(66, 153, 225, 1)',
+                            backgroundColor: 'rgba(66, 153, 225, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            borderDash: [8, 4],
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(66, 153, 225, 1)',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            order: 2
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'ROI Analysis: Property vs Alternative Investment',
+                                color: '#e0e6ed',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                },
+                                padding: {
+                                    bottom: 20
+                                }
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#e0e6ed',
+                                    font: {
+                                        size: 12
+                                    },
+                                    filter: function(item) {
+                                        // Hide the fill reference dataset from legend
+                                        return item.text !== '';
+                                    },
+                                    usePointStyle: false,
+                                    generateLabels: function(chart) {
+                                        const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                                        const labels = original.call(this, chart);
+                                        
+                                        return labels.filter(label => label.text !== '').map(label => {
+                                            // Customize legend appearance to show line style
+                                            if (label.text.includes('Property ROI')) {
+                                                label.fillStyle = 'rgba(72, 187, 120, 1)';
+                                                label.strokeStyle = 'rgba(72, 187, 120, 1)';
+                                                label.lineWidth = 3;
+                                            } else if (label.text.includes('Alternative')) {
+                                                label.fillStyle = 'rgba(66, 153, 225, 1)';
+                                                label.strokeStyle = 'rgba(66, 153, 225, 1)';
+                                                label.lineWidth = 2;
+                                                label.lineDash = [8, 4];
+                                            } else if (label.text.includes('Advantage')) {
+                                                label.fillStyle = 'rgba(72, 187, 120, 0.3)';
+                                                label.strokeStyle = 'rgba(72, 187, 120, 0.3)';
+                                            }
+                                            return label;
+                                        });
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                                titleColor: '#e0e6ed',
+                                bodyColor: '#e0e6ed',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: true,
+                                callbacks: {
+                                    title: function(context) {
+                                        const scenario = scenarios[context[0].dataIndex];
+                                        return `Down Payment: ${scenario.percentage.toFixed(0)}% (${new Intl.NumberFormat('en-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0
+                                        }).format(scenario.downPayment)})`;
+                                    },
+                                    label: function(context) {
+                                        const scenario = scenarios[context.dataIndex];
+                                        const dataset = context.dataset;
+                                        
+                                        if (dataset.label.includes('Property')) {
+                                            const netEquity = scenario.propertyEquity - scenario.interestPaid;
+                                            return [
+                                                `${dataset.label}: ${context.parsed.y.toFixed(1)}%`,
+                                                `Net Position: ${new Intl.NumberFormat('en-CA', {
+                                                    style: 'currency',
+                                                    currency: 'CAD',
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0
+                                                }).format(netEquity)}`
+                                            ];
+                                        } else if (dataset.label.includes('Alternative')) {
+                                            const altValue = scenario.downPayment * Math.pow(1 + (scenario.alternativeROI / 100), scenario.termYears);
+                                            return [
+                                                `${dataset.label}: ${context.parsed.y.toFixed(1)}%`,
+                                                `Portfolio Value: ${new Intl.NumberFormat('en-CA', {
+                                                    style: 'currency',
+                                                    currency: 'CAD',
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0
+                                                }).format(altValue)}`
+                                            ];
+                                        }
+                                        return `${dataset.label}: ${context.parsed.y.toFixed(1)}%`;
+                                    },
+                                    afterBody: function(context) {
+                                        const scenario = scenarios[context[0].dataIndex];
+                                        const advantage = scenario.propertyROI - scenario.alternativeROI;
+                                        const advantageText = advantage >= 0 ? 
+                                            `🏠 Property advantage: +${advantage.toFixed(1)}%` : 
+                                            `📈 Alternative advantage: +${Math.abs(advantage).toFixed(1)}%`;
+                                        
+                                        return [
+                                            '',
+                                            advantageText,
+                                            `Monthly Payment: ${new Intl.NumberFormat('en-CA', {
+                                                style: 'currency',
+                                                currency: 'CAD',
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0
+                                            }).format(scenario.monthlyPayment)}`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Down Payment Percentage',
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 13,
+                                        weight: '600'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Return on Investment (%)',
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 13,
+                                        weight: '600'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 11
+                                    },
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                this.optimizationChart = new Chart(ctx, config);
+
+                // Add breakeven point annotations if any exist
+                if (breakEvenPoints.length > 0) {
+                    setTimeout(() => {
+                        this.addBreakevenAnnotations(breakEvenPoints);
+                    }, 100);
+                }
+            }
+
+            addBreakevenAnnotations(breakEvenPoints) {
+                // Add text annotations for breakeven points
+                const chartArea = this.optimizationChart.chartArea;
+                const ctx = this.optimizationChart.ctx;
+                
+                breakEvenPoints.forEach(point => {
+                    // This would require Chart.js annotation plugin for full implementation
+                    // For now, we'll add the information to the tooltip
+                    console.log(`Breakeven point found at ${point.x}% down payment`);
+                });
+            }
+
+            displayScenarioCards(scenarios, optimalScenario, term) {
+                const grid = document.getElementById(`scenariosGrid${term}`);
+                grid.innerHTML = '';
+                
+                // Show top 6 scenarios
+                const topScenarios = scenarios
+                    .sort((a, b) => b.propertyROI - a.propertyROI)
+                    .slice(0, 6);
+                
+                topScenarios.forEach(scenario => {
+                    const card = document.createElement('div');
+                    card.className = `scenario-card-small ${scenario === optimalScenario ? 'optimal' : ''}`;
+                    
+                    const roiClass = scenario.propertyROI >= 0 ? 'positive' : 'negative';
+                    
+                    card.innerHTML = `
+                        <div class="scenario-header">
+                            <span class="scenario-amount">Down Payment: ${this.formatCurrency(scenario.downPayment)}</span>
+                            <span class="scenario-roi ${roiClass}">${scenario.propertyROI.toFixed(1)}%</span>
+                        </div>
+                        <div class="scenario-details">
+                            <div class="scenario-detail-item">
+                                <span>Down Payment:</span>
+                                <span>${scenario.percentage.toFixed(0)}%</span>
+                            </div>
+                            <div class="scenario-detail-item">
+                                <span>Monthly Payment:</span>
+                                <span>${this.formatCurrency(scenario.monthlyPayment)}</span>
+                            </div>
+                            <div class="scenario-detail-item">
+                                <span>${scenario.termYears}yr Interest:</span>
+                                <span>${this.formatCurrency(scenario.interestPaid)}</span>
+                            </div>
+                            <div class="scenario-detail-item">
+                                <span>Interest Rate:</span>
+                                <span>${scenario.interestRate.toFixed(2)}%</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+            }
+
+            // Opportunity Cost Analysis Methods
+            calculateOpportunityCost() {
+                if (!this.purchaseData.acceptedPrice || !this.mortgageData) {
+                    alert('Please complete all previous calculations first');
+                    return;
+                }
+
+                // Show the opportunity cost section
+                document.getElementById('opportunityCostSection').style.display = 'block';
+
+                // Calculate wealth scenarios for different time periods
+                this.opportunityCostData = {
+                    periods: [3, 5, 10],
+                    scenarios: {}
+                };
+
+                this.opportunityCostData.periods.forEach(years => {
+                    this.opportunityCostData.scenarios[`${years}yr`] = this.calculateWealthScenario(years);
+                });
+
+                // Display results (default to 5-year)
+                this.displayOpportunityCostResults('5yr');
+                this.createOpportunityCostChart('5yr');
+
+                document.getElementById('opportunityCostResults').style.display = 'block';
+                
+                // Show PDF generation option
+                document.getElementById('pdfGenerationSection').style.display = 'block';
+            }
+
+            calculateWealthScenario(years) {
+                const propertyPrice = this.purchaseData.acceptedPrice;
+                const downPayment = this.mortgageData.downPayment;
+                const propertyAppreciation = parseFloat(document.getElementById('propertyAppreciation').value) / 100;
+
+                // Get investment allocation
+                const amount1 = parseFloat(document.getElementById('amount1').value) || 0;
+                const amount2 = parseFloat(document.getElementById('amount2').value) || 0;
+                const amount3 = parseFloat(document.getElementById('amount3').value) || 0;
+                const rate1 = parseFloat(document.getElementById('rate1').value) / 100;
+                const rate2 = parseFloat(document.getElementById('rate2').value) / 100;
+                const rate3 = parseFloat(document.getElementById('rate3').value) / 100;
+
+                // Property scenario
+                const futurePropertyValue = propertyPrice * Math.pow(1 + propertyAppreciation, years);
+                const mortgageBalance = this.calculateMortgageBalance(years);
+                const totalInterestPaid = this.calculateTotalInterest(years);
+                const propertyEquity = futurePropertyValue - mortgageBalance;
+                const netPropertyPosition = propertyEquity - totalInterestPaid;
+
+                // Alternative investment scenario
+                const totalInvestment = amount1 + amount2 + amount3;
+                let alternativeValue = 0;
+                let weightedReturn = 0;
+
+                if (totalInvestment > 0) {
+                    alternativeValue = (amount1 * Math.pow(1 + rate1, years)) +
+                                    (amount2 * Math.pow(1 + rate2, years)) +
+                                    (amount3 * Math.pow(1 + rate3, years));
+                    weightedReturn = (amount1 * rate1 + amount2 * rate2 + amount3 * rate3) / totalInvestment;
+                }
+
+                // Risk calculations
+                const propertyRisk = this.calculatePropertyRisk(propertyAppreciation, years);
+                const portfolioRisk = this.calculatePortfolioRisk([rate1, rate2, rate3], [amount1, amount2, amount3]);
+
+                return {
+                    years,
+                    property: {
+                        initialInvestment: downPayment,
+                        futureValue: futurePropertyValue,
+                        equity: propertyEquity,
+                        mortgageBalance,
+                        interestPaid: totalInterestPaid,
+                        netPosition: netPropertyPosition,
+                        totalWealth: netPropertyPosition,
+                        risk: propertyRisk
+                    },
+                    alternative: {
+                        initialInvestment: totalInvestment,
+                        futureValue: alternativeValue,
+                        growth: alternativeValue - totalInvestment,
+                        totalWealth: alternativeValue,
+                        weightedReturn,
+                        risk: portfolioRisk
+                    },
+                    difference: netPropertyPosition - alternativeValue,
+                    betterOption: netPropertyPosition > alternativeValue ? 'property' : 'alternative'
+                };
+            }
+
+            calculateMortgageBalance(years) {
+                const mortgageAmount = this.mortgageData.mortgageAmount;
+                const monthlyRate = this.mortgageData.interestRate5yr / 100 / 12; // Use 5-year rate as default
+                const monthlyPayment = this.mortgageData.paymentAmount5yr;
+                const paymentsToDate = years * 12;
+
+                let balance = mortgageAmount;
+                for (let i = 0; i < paymentsToDate; i++) {
+                    const interestPayment = balance * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+                    balance -= principalPayment;
+                    if (balance <= 0) break;
+                }
+
+                return Math.max(0, balance);
+            }
+
+            calculateTotalInterest(years) {
+                const monthlyPayment = this.mortgageData.paymentAmount5yr;
+                const paymentsToDate = Math.min(years * 12, 25 * 12); // Cap at amortization period
+                return monthlyPayment * paymentsToDate - (this.mortgageData.mortgageAmount - this.calculateMortgageBalance(years));
+            }
+
+            calculatePropertyRisk(appreciationRate, years) {
+                // Simplified risk calculation based on property market volatility
+                const baseVolatility = 0.15; // 15% annual volatility for real estate
+                const timeAdjustment = Math.sqrt(years);
+                const appreciationRisk = Math.abs(appreciationRate) * 0.5; // Higher appreciation = higher risk
+                
+                return {
+                    volatility: baseVolatility * timeAdjustment,
+                    riskLevel: appreciationRisk > 0.05 ? 'High' : appreciationRisk > 0.02 ? 'Medium' : 'Low',
+                    confidenceInterval: {
+                        lower: appreciationRate - (baseVolatility * timeAdjustment),
+                        upper: appreciationRate + (baseVolatility * timeAdjustment)
+                    }
+                };
+            }
+
+            calculatePortfolioRisk([rate1, rate2, rate3], [amount1, amount2, amount3]) {
+                const totalAmount = amount1 + amount2 + amount3;
+                if (totalAmount === 0) return { volatility: 0, riskLevel: 'None', confidenceInterval: { lower: 0, upper: 0 } };
+
+                // Simplified portfolio risk calculation
+                const weights = [amount1/totalAmount, amount2/totalAmount, amount3/totalAmount];
+                const returns = [rate1, rate2, rate3];
+                
+                // Assume different volatilities for different return rates
+                const volatilities = returns.map(r => Math.max(0.1, Math.abs(r) * 2)); // Higher return = higher volatility
+                
+                // Portfolio volatility (simplified - assumes some correlation)
+                const portfolioVolatility = Math.sqrt(
+                    weights.reduce((sum, w, i) => sum + Math.pow(w * volatilities[i], 2), 0)
+                ) * 0.8; // Correlation adjustment
+
+                const avgReturn = returns.reduce((sum, r, i) => sum + r * weights[i], 0);
+                
+                return {
+                    volatility: portfolioVolatility,
+                    riskLevel: portfolioVolatility > 0.2 ? 'High' : portfolioVolatility > 0.1 ? 'Medium' : 'Low',
+                    confidenceInterval: {
+                        lower: avgReturn - portfolioVolatility,
+                        upper: avgReturn + portfolioVolatility
+                    }
+                };
+            }
+
+            showOpportunityCostPeriod(period) {
+                // Update tab appearance
+                document.querySelectorAll('.period-tab').forEach(tab => tab.classList.remove('active'));
+                event.target.classList.add('active');
+
+                // Update displays
+                this.displayOpportunityCostResults(period);
+                this.createOpportunityCostChart(period);
+            }
+
+            displayOpportunityCostResults(period) {
+                const scenario = this.opportunityCostData.scenarios[period];
+                
+                // Property wealth breakdown
+                const propertyBreakdown = document.getElementById('propertyWealthBreakdown');
+                propertyBreakdown.innerHTML = `
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Initial Investment:</span>
+                        <span class="wealth-detail-value">${this.formatCurrency(scenario.property.initialInvestment)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Property Value:</span>
+                        <span class="wealth-detail-value">${this.formatCurrency(scenario.property.futureValue)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Mortgage Balance:</span>
+                        <span class="wealth-detail-value">${this.formatCurrency(scenario.property.mortgageBalance)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Interest Paid:</span>
+                        <span class="wealth-detail-value negative">${this.formatCurrency(scenario.property.interestPaid)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label"><strong>Net Wealth:</strong></span>
+                        <span class="wealth-detail-value ${scenario.property.totalWealth >= 0 ? 'positive' : 'negative'}">
+                            <strong>${this.formatCurrency(scenario.property.totalWealth)}</strong>
+                        </span>
+                    </div>
+                `;
+
+                // Alternative wealth breakdown
+                const alternativeBreakdown = document.getElementById('alternativeWealthBreakdown');
+                alternativeBreakdown.innerHTML = `
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Initial Investment:</span>
+                        <span class="wealth-detail-value">${this.formatCurrency(scenario.alternative.initialInvestment)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Portfolio Growth:</span>
+                        <span class="wealth-detail-value positive">${this.formatCurrency(scenario.alternative.growth)}</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label">Avg Annual Return:</span>
+                        <span class="wealth-detail-value">${(scenario.alternative.weightedReturn * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="wealth-detail-item">
+                        <span class="wealth-detail-label"><strong>Total Wealth:</strong></span>
+                        <span class="wealth-detail-value ${scenario.alternative.totalWealth >= 0 ? 'positive' : 'negative'}">
+                            <strong>${this.formatCurrency(scenario.alternative.totalWealth)}</strong>
+                        </span>
+                    </div>
+                `;
+
+                // Risk metrics
+                this.displayRiskMetrics(scenario);
+            }
+
+            displayRiskMetrics(scenario) {
+                // Property risk metrics
+                const propertyRiskMetrics = document.getElementById('propertyRiskMetrics');
+                propertyRiskMetrics.innerHTML = `
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Risk Level:</span>
+                        <span class="risk-detail-value">${scenario.property.risk.riskLevel}</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Volatility:</span>
+                        <span class="risk-detail-value">${(scenario.property.risk.volatility * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Liquidity:</span>
+                        <span class="risk-detail-value">Low</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Leverage Risk:</span>
+                        <span class="risk-detail-value">High</span>
+                    </div>
+                `;
+
+                // Portfolio risk metrics
+                const portfolioRiskMetrics = document.getElementById('portfolioRiskMetrics');
+                portfolioRiskMetrics.innerHTML = `
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Risk Level:</span>
+                        <span class="risk-detail-value">${scenario.alternative.risk.riskLevel}</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Volatility:</span>
+                        <span class="risk-detail-value">${(scenario.alternative.risk.volatility * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Liquidity:</span>
+                        <span class="risk-detail-value">High</span>
+                    </div>
+                    <div class="risk-detail-item">
+                        <span class="risk-detail-label">Diversification:</span>
+                        <span class="risk-detail-value">Medium</span>
+                    </div>
+                `;
+
+                // Risk-adjusted recommendation
+                const recommendation = document.getElementById('riskAdjustedRecommendation');
+                const difference = Math.abs(scenario.difference);
+                const percentDiff = (difference / Math.max(scenario.property.totalWealth, scenario.alternative.totalWealth)) * 100;
+
+                let recommendationText = '';
+                let recommendationClass = '';
+
+                if (percentDiff < 10) {
+                    recommendationClass = 'balanced';
+                    recommendationText = `Both strategies show similar wealth outcomes (${percentDiff.toFixed(1)}% difference). Consider your risk tolerance: property offers potential leverage benefits but lower liquidity, while the portfolio provides better diversification and liquidity.`;
+                } else if (scenario.betterOption === 'property') {
+                    recommendationClass = 'property-favored';
+                    recommendationText = `Property investment shows ${percentDiff.toFixed(1)}% better wealth accumulation (${this.formatCurrency(scenario.difference)} advantage). However, consider the higher leverage risk and lower liquidity. This strategy works best if you're comfortable with real estate market exposure.`;
+                } else {
+                    recommendationClass = 'alternative-favored';
+                    recommendationText = `Alternative investment portfolio shows ${percentDiff.toFixed(1)}% better wealth accumulation (${this.formatCurrency(Math.abs(scenario.difference))} advantage). This strategy offers better liquidity and diversification, making it suitable for investors who prefer flexibility and lower concentration risk.`;
+                }
+
+                recommendation.className = `recommendation-text ${recommendationClass}`;
+                recommendation.textContent = recommendationText;
+            }
+
+            createOpportunityCostChart(period) {
+                const ctx = document.getElementById('opportunityCostChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (this.opportunityCostChart) {
+                    this.opportunityCostChart.destroy();
+                }
+
+                const scenarios = this.opportunityCostData.scenarios;
+                const periods = this.opportunityCostData.periods;
+
+                const data = {
+                    labels: periods.map(p => `${p} Years`),
+                    datasets: [
+                        {
+                            label: '🏠 Property Strategy',
+                            data: periods.map(p => scenarios[`${p}yr`].property.totalWealth),
+                            backgroundColor: 'rgba(72, 187, 120, 0.8)',
+                            borderColor: 'rgba(72, 187, 120, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        },
+                        {
+                            label: '📈 Portfolio Strategy',
+                            data: periods.map(p => scenarios[`${p}yr`].alternative.totalWealth),
+                            backgroundColor: 'rgba(66, 153, 225, 0.8)',
+                            borderColor: 'rgba(66, 153, 225, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }
+                    ]
+                };
+
+                const config = {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Total Wealth Accumulation Comparison',
+                                color: '#e0e6ed',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#e0e6ed',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 55, 72, 0.95)',
+                                titleColor: '#e0e6ed',
+                                bodyColor: '#e0e6ed',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed.y;
+                                        const formatted = new Intl.NumberFormat('en-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0
+                                        }).format(value);
+                                        return `${context.dataset.label}: ${formatted}`;
+                                    },
+                                    afterBody: function(context) {
+                                        const periodKey = `${periods[context[0].dataIndex]}yr`;
+                                        const scenario = scenarios[periodKey];
+                                        const difference = scenario.difference;
+                                        const betterStrategy = difference > 0 ? 'Property' : 'Portfolio';
+                                        const advantage = Math.abs(difference);
+                                        
+                                        return [
+                                            '',
+                                            `${betterStrategy} advantage: ${new Intl.NumberFormat('en-CA', {
+                                                style: 'currency',
+                                                currency: 'CAD',
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0
+                                            }).format(advantage)}`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)'
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(74, 85, 104, 0.3)'
+                                },
+                                ticks: {
+                                    color: '#cbd5e0',
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('en-CA', {
+                                            style: 'currency',
+                                            currency: 'CAD',
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                            notation: 'compact'
+                                        }).format(value);
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                };
+
+                this.opportunityCostChart = new Chart(ctx, config);
+            }
+
+            // PDF Generation Methods
+            async generatePDFReport() {
+                const loadingIndicator = document.getElementById('pdfLoadingIndicator');
+                const generateButton = document.getElementById('generatePDF');
+                
+                try {
+                    // Show loading indicator
+                    loadingIndicator.style.display = 'block';
+                    generateButton.disabled = true;
+                    generateButton.textContent = 'Generating...';
+
+                    // Initialize jsPDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    // Generate PDF content
+                    await this.addCoverPage(pdf);
+                    await this.addPurchaseCostSection(pdf);
+                    await this.addMortgageAnalysisSection(pdf);
+                    await this.addROIComparisonSection(pdf);
+                    await this.addOptimizationSection(pdf);
+                    await this.addOpportunityCostSection(pdf);
+                    await this.addSummaryAndRecommendations(pdf);
+
+                    // Generate filename with current date
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    const filename = `BC_Property_Analysis_${currentDate}.pdf`;
+
+                    // Save the PDF
+                    pdf.save(filename);
+
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('There was an error generating the PDF. Please try again.');
+                } finally {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    generateButton.disabled = false;
+                    generateButton.textContent = '📊 Generate PDF Report';
+                }
+            }
+
+            async addCoverPage(pdf) {
+                // Cover page
+                pdf.setFillColor(45, 55, 72); // Dark background
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Title
+                pdf.setTextColor(224, 230, 237); // Light text
+                pdf.setFontSize(28);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('BC Property Purchase Calculator', 105, 60, { align: 'center' });
+                
+                // Subtitle
+                pdf.setFontSize(16);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text('Comprehensive Investment Analysis Report', 105, 80, { align: 'center' });
+                
+                // Property details
+                pdf.setFontSize(14);
+                pdf.setTextColor(160, 174, 192); // Muted text
+                const propertyPrice = this.formatCurrency(this.purchaseData.acceptedPrice);
+                const downPayment = this.formatCurrency(this.mortgageData.downPayment);
+                const city = document.getElementById('propertyCity').selectedOptions[0]?.text || 'Not specified';
+                
+                pdf.text(`Property Price: ${propertyPrice}`, 105, 120, { align: 'center' });
+                pdf.text(`Down Payment: ${downPayment}`, 105, 135, { align: 'center' });
+                pdf.text(`Location: ${city}`, 105, 150, { align: 'center' });
+                
+                // Generation date
+                pdf.setFontSize(12);
+                const currentDate = new Date().toLocaleDateString('en-CA', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                pdf.text(`Generated on: ${currentDate}`, 105, 200, { align: 'center' });
+                
+                // Disclaimer
+                pdf.setFontSize(10);
+                pdf.setTextColor(128, 128, 128);
+                const disclaimer = 'This report is for informational purposes only and should not be considered as financial advice.\nPlease consult with a qualified financial advisor before making investment decisions.';
+                pdf.text(disclaimer, 105, 250, { align: 'center', maxWidth: 160 });
+                
+                pdf.addPage();
+            }
+
+            async addPurchaseCostSection(pdf) {
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Purchase Cost Breakdown', 20, 30);
+                
+                // Draw line under header
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                // Cost details
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                let yPos = 55;
+                
+                const costs = [
+                    ['Accepted Purchase Price', this.formatCurrency(this.purchaseData.acceptedPrice)],
+                    ['Property Transfer Tax', this.formatCurrency(this.purchaseData.ptt)],
+                    ['GST (if applicable)', this.formatCurrency(this.purchaseData.gst)],
+                    ['Estimated Legal Costs', this.formatCurrency(this.purchaseData.legalCosts)],
+                    ['', ''], // Spacer
+                    ['Total Purchase Cost', this.formatCurrency(this.purchaseData.totalCost)]
+                ];
+                
+                costs.forEach(([label, value], index) => {
+                    if (label === '') {
+                        yPos += 5;
+                        return;
+                    }
+                    
+                    if (index === costs.length - 1) {
+                        // Total row - bold and highlighted
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setFillColor(240, 248, 255);
+                        pdf.rect(20, yPos - 5, 170, 10, 'F');
+                    }
+                    
+                    pdf.text(label, 25, yPos);
+                    pdf.text(value, 185, yPos, { align: 'right' });
+                    
+                    if (index === costs.length - 1) {
+                        pdf.setFont('helvetica', 'normal');
+                    }
+                    
+                    yPos += 12;
+                });
+                
+                // Add notes section
+                yPos += 20;
+                pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text('Notes:', 20, yPos);
+                yPos += 8;
+                
+                const notes = [
+                    '• Property Transfer Tax calculated based on BC rates with first-time buyer exemptions if applicable',
+                    '• GST applies only to new construction properties',
+                    '• Legal costs are estimated and may vary based on complexity',
+                    '• Additional costs such as home inspection, appraisal, and moving expenses not included'
+                ];
+                
+                notes.forEach(note => {
+                    pdf.text(note, 25, yPos, { maxWidth: 160 });
+                    yPos += 8;
+                });
+            }
+
+            async addMortgageAnalysisSection(pdf) {
+                pdf.addPage();
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Mortgage Analysis', 20, 30);
+                
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                // Mortgage summary
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Mortgage Summary', 20, 55);
+                
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                let yPos = 70;
+                
+                const mortgageDetails = [
+                    ['Mortgage Amount', this.formatCurrency(this.mortgageData.mortgageAmount)],
+                    ['Down Payment', this.formatCurrency(this.mortgageData.downPayment)],
+                    ['Amortization Period', document.getElementById('amortization').value + ' years'],
+                    ['Payment Frequency', document.getElementById('paymentFreq').selectedOptions[0].text]
+                ];
+                
+                mortgageDetails.forEach(([label, value]) => {
+                    pdf.text(label, 25, yPos);
+                    pdf.text(value, 185, yPos, { align: 'right' });
+                    yPos += 10;
+                });
+                
+                // Term comparison
+                yPos += 20;
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Term Comparison', 20, yPos);
+                yPos += 15;
+                
+                // 3-year term
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('3-Year Term', 25, yPos);
+                yPos += 10;
+                
+                pdf.setFont('helvetica', 'normal');
+                const term3Details = [
+                    ['Interest Rate', this.mortgageData.interestRate3yr.toFixed(2) + '%'],
+                    ['Payment Amount', this.formatCurrency(this.mortgageData.paymentAmount3yr)],
+                    ['Principal Paid (3 years)', this.formatCurrency(this.mortgageData.analysis3yr.principalPaid)],
+                    ['Interest Paid (3 years)', this.formatCurrency(this.mortgageData.analysis3yr.interestPaid)],
+                    ['Remaining Balance', this.formatCurrency(this.mortgageData.analysis3yr.remainingBalance)]
+                ];
+                
+                term3Details.forEach(([label, value]) => {
+                    pdf.text(label, 30, yPos);
+                    pdf.text(value, 185, yPos, { align: 'right' });
+                    yPos += 8;
+                });
+                
+                yPos += 10;
+                
+                // 5-year term
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('5-Year Term', 25, yPos);
+                yPos += 10;
+                
+                pdf.setFont('helvetica', 'normal');
+                const term5Details = [
+                    ['Interest Rate', this.mortgageData.interestRate5yr.toFixed(2) + '%'],
+                    ['Payment Amount', this.formatCurrency(this.mortgageData.paymentAmount5yr)],
+                    ['Principal Paid (5 years)', this.formatCurrency(this.mortgageData.analysis5yr.principalPaid)],
+                    ['Interest Paid (5 years)', this.formatCurrency(this.mortgageData.analysis5yr.interestPaid)],
+                    ['Remaining Balance', this.formatCurrency(this.mortgageData.analysis5yr.remainingBalance)]
+                ];
+                
+                term5Details.forEach(([label, value]) => {
+                    pdf.text(label, 30, yPos);
+                    pdf.text(value, 185, yPos, { align: 'right' });
+                    yPos += 8;
+                });
+            }
+
+            async addROIComparisonSection(pdf) {
+                pdf.addPage();
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Return on Investment Analysis', 20, 30);
+                
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                // Capture the comparison chart
+                try {
+                    const chartCanvas = document.getElementById('comparisonChart');
+                    if (chartCanvas) {
+                        const chartImage = await html2canvas(chartCanvas, {
+                            backgroundColor: '#ffffff',
+                            scale: 2
+                        });
+                        
+                        const imgData = chartImage.toDataURL('image/png');
+                        pdf.addImage(imgData, 'PNG', 20, 50, 170, 100);
+                    }
+                } catch (error) {
+                    console.warn('Could not capture chart:', error);
+                    pdf.setFontSize(12);
+                    pdf.text('Chart could not be generated', 105, 100, { align: 'center' });
+                }
+                
+                // ROI summary table
+                let yPos = 170;
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Investment Comparison Summary', 20, yPos);
+                yPos += 15;
+                
+                // Get ROI data (assuming it's stored)
+                if (this.roiData) {
+                    const roiSummary = [
+                        ['', '3-Year Analysis', '5-Year Analysis'],
+                        ['Property Net Position', 
+                         this.formatCurrency(this.roiData.property3yr.netPosition),
+                         this.formatCurrency(this.roiData.property5yr.netPosition)],
+                        ['Alternative Investment Value',
+                         this.formatCurrency(this.roiData.investment3yr.totalValue),
+                         this.formatCurrency(this.roiData.investment5yr.totalValue)],
+                        ['Difference',
+                         this.formatCurrency(this.roiData.difference3yr),
+                         this.formatCurrency(this.roiData.difference5yr)],
+                        ['Better Option',
+                         this.roiData.better3yr,
+                         this.roiData.better5yr]
+                    ];
+                    
+                    pdf.setFontSize(10);
+                    roiSummary.forEach(([label, val3yr, val5yr], index) => {
+                        if (index === 0) {
+                            pdf.setFont('helvetica', 'bold');
+                        } else {
+                            pdf.setFont('helvetica', 'normal');
+                        }
+                        
+                        pdf.text(label, 25, yPos);
+                        pdf.text(val3yr, 105, yPos, { align: 'center' });
+                        pdf.text(val5yr, 160, yPos, { align: 'center' });
+                        yPos += 12;
+                    });
+                }
+            }
+
+            async addOptimizationSection(pdf) {
+                pdf.addPage();
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Down Payment Optimization', 20, 30);
+                
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                // Capture optimization chart
+                try {
+                    const chartCanvas = document.getElementById('optimizationChart');
+                    if (chartCanvas) {
+                        const chartImage = await html2canvas(chartCanvas, {
+                            backgroundColor: '#ffffff',
+                            scale: 2
+                        });
+                        
+                        const imgData = chartImage.toDataURL('image/png');
+                        pdf.addImage(imgData, 'PNG', 20, 50, 170, 100);
+                    }
+                } catch (error) {
+                    console.warn('Could not capture optimization chart:', error);
+                }
+                
+                // Optimization recommendations
+                let yPos = 170;
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Optimization Recommendations', 20, yPos);
+                yPos += 15;
+                
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                
+                // Add optimization results if available
+                const optimalText = 'Based on the analysis of different down payment scenarios, the optimal strategy balances leverage benefits with risk management. Higher down payments reduce interest costs but may limit investment diversification opportunities.';
+                pdf.text(optimalText, 20, yPos, { maxWidth: 170 });
+            }
+
+            async addOpportunityCostSection(pdf) {
+                pdf.addPage();
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Opportunity Cost Analysis', 20, 30);
+                
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                // Capture opportunity cost chart
+                try {
+                    const chartCanvas = document.getElementById('opportunityCostChart');
+                    if (chartCanvas) {
+                        const chartImage = await html2canvas(chartCanvas, {
+                            backgroundColor: '#ffffff',
+                            scale: 2
+                        });
+                        
+                        const imgData = chartImage.toDataURL('image/png');
+                        pdf.addImage(imgData, 'PNG', 20, 50, 170, 100);
+                    }
+                } catch (error) {
+                    console.warn('Could not capture opportunity cost chart:', error);
+                }
+                
+                // Wealth accumulation summary
+                let yPos = 170;
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Wealth Accumulation Summary', 20, yPos);
+                yPos += 15;
+                
+                if (this.opportunityCostData) {
+                    const scenario5yr = this.opportunityCostData.scenarios['5yr'];
+                    
+                    pdf.setFontSize(12);
+                    pdf.setFont('helvetica', 'normal');
+                    
+                    const wealthSummary = [
+                        ['5-Year Property Strategy:', this.formatCurrency(scenario5yr.property.totalWealth)],
+                        ['5-Year Portfolio Strategy:', this.formatCurrency(scenario5yr.alternative.totalWealth)],
+                        ['Difference:', this.formatCurrency(Math.abs(scenario5yr.difference))],
+                        ['Better Strategy:', scenario5yr.betterOption === 'property' ? 'Property Investment' : 'Portfolio Investment']
+                    ];
+                    
+                    wealthSummary.forEach(([label, value]) => {
+                        pdf.text(label, 25, yPos);
+                        pdf.text(value, 185, yPos, { align: 'right' });
+                        yPos += 12;
+                    });
+                }
+            }
+
+            async addSummaryAndRecommendations(pdf) {
+                pdf.addPage();
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, 210, 297, 'F');
+                
+                // Section header
+                pdf.setTextColor(45, 55, 72);
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Summary & Recommendations', 20, 30);
+                
+                pdf.setDrawColor(102, 126, 234);
+                pdf.setLineWidth(2);
+                pdf.line(20, 35, 190, 35);
+                
+                let yPos = 55;
+                
+                // Key findings
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Key Findings', 20, yPos);
+                yPos += 15;
+                
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'normal');
+                
+                const findings = [
+                    `• Total purchase cost: ${this.formatCurrency(this.purchaseData.totalCost)}`,
+                    `• Monthly mortgage payment (5-year): ${this.formatCurrency(this.mortgageData.paymentAmount5yr)}`,
+                    `• Down payment represents ${((this.mortgageData.downPayment / this.purchaseData.acceptedPrice) * 100).toFixed(1)}% of purchase price`,
+                    '• Property investment offers leverage benefits but requires higher risk tolerance',
+                    '• Alternative investments provide better liquidity and diversification'
+                ];
+                
+                findings.forEach(finding => {
+                    pdf.text(finding, 25, yPos, { maxWidth: 160 });
+                    yPos += 12;
+                });
+                
+                yPos += 15;
+                
+                // Recommendations
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('Recommendations', 20, yPos);
+                yPos += 15;
+                
+                pdf.setFontSize(11);
+                pdf.setFont('helvetica', 'normal');
+                
+                const recommendations = [
+                    '1. Consider your risk tolerance and investment timeline when choosing between property and portfolio investments',
+                    '2. Ensure you have adequate emergency funds beyond the down payment',
+                    '3. Factor in ongoing property maintenance, taxes, and insurance costs',
+                    '4. Consider the impact of interest rate changes on mortgage payments',
+                    '5. Consult with a qualified financial advisor before making final decisions'
+                ];
+                
+                recommendations.forEach(rec => {
+                    pdf.text(rec, 25, yPos, { maxWidth: 160 });
+                    yPos += 18;
+                });
+                
+                // Footer
+                yPos = 270;
+                pdf.setFontSize(8);
+                pdf.setTextColor(128, 128, 128);
+                pdf.text('This analysis is based on the information provided and current market conditions. Results may vary.', 105, yPos, { align: 'center' });
+            }
+
+            formatCurrency(amount) {
+                return new Intl.NumberFormat('en-CA', {
+                    style: 'currency',
+                    currency: 'CAD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(amount);
+            }
+        }
+
+        // Initialize the calculator
+        const calculator = new PropertyCalculator();
+    </script>
+
+    <style>
+        /* Opportunity Cost Visualization Styles */
+        .time-period-selector {
+            margin-bottom: 30px;
+        }
+
+        .period-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .period-tab {
+            background: #4a5568;
+            color: #e0e6ed;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .period-tab.active, .period-tab:hover {
+            background: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .opportunity-chart-container {
+            height: 400px;
+            margin-bottom: 40px;
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #4a5568;
+        }
+
+        .wealth-breakdown-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .wealth-scenario-card {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #4a5568;
+        }
+
+        .wealth-scenario-card.property-wealth {
+            border-left: 4px solid #48bb78;
+        }
+
+        .wealth-scenario-card.alternative-wealth {
+            border-left: 4px solid #667eea;
+        }
+
+        .wealth-scenario-card h4 {
+            color: #e0e6ed;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wealth-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .wealth-detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .wealth-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .wealth-detail-label {
+            color: #a0aec0;
+            font-size: 0.95em;
+        }
+
+        .wealth-detail-value {
+            color: #e0e6ed;
+            font-weight: 600;
+        }
+
+        .wealth-detail-value.positive {
+            color: #48bb78;
+        }
+
+        .wealth-detail-value.negative {
+            color: #f56565;
+        }
+
+        .risk-analysis-section {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #4a5568;
+        }
+
+        .risk-analysis-section h4 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .risk-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .risk-metric-card {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #4a5568;
+        }
+
+        .risk-metric-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .risk-icon {
+            font-size: 1.2em;
+        }
+
+        .risk-title {
+            color: #e0e6ed;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        .risk-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .risk-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9em;
+        }
+
+        .risk-detail-label {
+            color: #a0aec0;
+        }
+
+        .risk-detail-value {
+            color: #cbd5e0;
+            font-weight: 500;
+        }
+
+        .risk-conclusion {
+            background: #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .risk-conclusion h5 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .recommendation-text {
+            color: #e0e6ed;
+            line-height: 1.6;
+            font-size: 1em;
+        }
+
+        .recommendation-text.property-favored {
+            border-left: 4px solid #48bb78;
+            padding-left: 15px;
+        }
+
+        .recommendation-text.alternative-favored {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .recommendation-text.balanced {
+            border-left: 4px solid #ed8936;
+            padding-left: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .wealth-breakdown-grid,
+            .risk-metrics-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .period-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .market-summary-container {
+            background: #1a1a2e;
+            border-top: 2px solid #667eea;
+            padding: 40px 20px;
+            margin-top: 40px;
+            border-radius: 12px;
+        }
+
+        .market-summary-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .market-overview-card {
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #2d2d3d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .market-overview-card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .market-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-item {
+            background: #2d3748;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #e0e6ed;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #a0aec0;
+        }
+
+        .market-insights {
+            background: #2d3748;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .market-insights h4 {
+            color: #48bb78;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(72, 187, 120, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #48bb78;
+        }
+
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .insight-icon {
+            color: #48bb78;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .insight-text {
+            color: #cbd5e0;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .data-sources {
+            background: #1e2a3a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #4a5568;
+        }
+
+        .data-sources h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .source-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .source-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .source-icon {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .source-info {
+            flex: 1;
+        }
+
+        .source-name {
+            color: #e0e6ed;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .source-desc {
+            color: #a0aec0;
+            font-size: 0.8em;
+        }
+
+        .market-trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .trend-up {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+        }
+
+        .trend-down {
+            background: rgba(245, 101, 101, 0.2);
+            color: #f56565;
+        }
+
+        .trend-stable {
+            background: rgba(237, 137, 54, 0.2);
+            color: #ed8936;
+        }
+
+        @media (max-width: 768px) {
+            .market-summary-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .market-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .source-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
